@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <body>
+     <p id="demo"></p>
+     <script>
+        const client = new XMLHttpRequest();
+        client.open('GET', '/driverList.txt');
+        client.onreadystatechange = function() {
+        const driverInfo = client.responseText;
+
+        let driverList = [];
+        driverInfo.split('\n').forEach((value, index) => {
+        let tripDriver = `Trip ${(value.split(' ')[1].trim())}`;
+        if(value.indexOf('Driver') != -1 ){
+        if((driverInfo.match(new RegExp(tripDriver, 'g')) || []).length === 0){
+        driverList.push({
+        'DriverName':tripDriver,
+        'miles':0
+        });
+        }
+        }
+        else{
+         let splitValues = value.split(" ").map(x => {return Number(x) ? Number(x) : x});
+        let foundedIndex = driverList.findIndex(i => i.DriverName === splitValues[1]);
+        if(foundedIndex >= 0){
+         let [hours, mins] = timeCaluclation(splitValues[2], splitValues[3]);
+        driverList[foundedIndex].miles  =  Math.round(driverList[foundedIndex].miles + splitValues[4]);
+        driverList[foundedIndex].timeSpent  =  Math.floor(driverList[foundedIndex].timeSpent + Math.abs(hours * 60 + mins));
+        driverList[foundedIndex].averageSpeed = Math.round(driverList[foundedIndex].miles / driverList[foundedIndex].timeSpent * 60);
+        }
+        else{
+        var [hours, mins] = timeCaluclation(splitValues[2], splitValues[3]);
+        driverList.push({
+        'DriverName':splitValues[1],
+        'startTime':splitValues[2],
+        'endTime':splitValues[3],
+        'miles':splitValues[4],
+        'timeSpent': Math.abs(hours * 60 + mins),
+        'averageSpeed': Math.round(splitValues[4] / Math.abs(hours * 60 + mins) * 60)
+        });
+        }
+        }
+        })
+       
+        function timeCaluclation(startTime, endTime){
+        var diff = (new Date(`01/01/2007 ${startTime}`).getTime() - new Date(`01/01/2007 ${endTime}`).getTime());
+        var hours = Math.floor(diff / (1000 * 60 * 60));
+        diff -= hours * (1000 * 60 * 60);
+        var mins = Math.floor(diff / (1000 * 60));
+        return [hours, mins]
+        }
+        driverList.forEach((driver, index) => {
+        if(driver.averageSpeed > 5 && driver.averageSpeed < 100 ){
+        console.log(`${driver.DriverName}: ${driver.miles} miles @ ${driver.averageSpeed}  mph`);
+        }
+        else if(driver.averageSpeed == undefined && !!driver.DriverName) {
+        console.log(`${driver.DriverName}: ${driver.miles} miles`);
+        }
+        })
+        }
+        client.send();
+     </script>
+  </body>
+</html>
