@@ -1,5 +1,8 @@
 # TripSummary
 
+Created a project to simulate/track the driver trip details.
+
+
 Getting Started
 
 Steps to run locally:
